@@ -1,5 +1,6 @@
 from pydoc_data.topics import topics
-from django.shortcuts import render, HttpResponse
+from django.shortcuts import render, HttpResponse, redirect
+from django.views.decorators.csrf import csrf_exempt
 
 # Create your views here.
 movies = [
@@ -7,6 +8,7 @@ movies = [
     {'id':2, 'title':'Inception', 'year':2010},
     {'id':3, 'title':'Interstella', 'year':2014}
 ]
+nextId=4
 
 def HTMLTemplate(articleTag):
     global movies
@@ -42,12 +44,23 @@ def read(request, id):
             article = f'<h2>{movie["title"]}</h2>출시년도: {movie["year"]}'
     return HttpResponse(HTMLTemplate(article))
 
-def create(requset):
-    article='''
-        <form action="/create/">
-        <p><input type ="text" name="title" placeholder="title"></p>    
-        <p><input type ="text" name="year" placeholder="year"></p>
-        <p><input type="submit"></p>
-        </form>
-    '''
-    return HttpResponse(HTMLTemplate(article))
+@csrf_exempt
+def create(request):
+    global nextId
+    if request.method =='GET':
+        article='''
+            <form action="/create/" method="post">
+            <p><input type ="text" name="title" placeholder="title"></p>    
+            <p><input type ="text" name="year" placeholder="year"></p>
+            <p><input type="submit"></p>
+            </form>
+        '''
+        return HttpResponse(HTMLTemplate(article))
+    elif request.method =="POST":
+        title = request.POST['title']
+        year = request.POST['year']
+        newMovie={"id":nextId, "title":title, "year":year}
+        movies.append(newMovie)
+        url='/read/'+str(nextId) 
+        nextId =nextId + 1
+        return redirect(url)
