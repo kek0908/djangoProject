@@ -21,6 +21,7 @@ def HTMLTemplate(articleTag, id=None):
                     <input  type="submit" value="delete">
                 </form>
             </li>
+            <li><a href="/update/{id}">update</a></li>
         '''
     ol=''
     for movie in movies:
@@ -75,6 +76,33 @@ def create(request):
         url='/read/'+str(nextId) 
         nextId =nextId + 1
         return redirect(url)
+
+@csrf_exempt
+def update(request, id):
+    global movies
+    if request.method=='GET':
+        for movie in movies:
+            if movie['id']==int(id):
+                selectedMovie={
+                    "title":movie['title'],
+                    "year":movie['year']
+                }
+        article=f'''
+            <form action="/update/{id}/" method="post">
+                <p><input type ="text" name="title" placeholder="title" value ={selectedMovie["title"]}></p>    
+                <p><input type ="text" name="year" placeholder="year" value = {selectedMovie['year']}></p>
+                <p><input type="submit"></p>
+            </form>
+        '''
+        return HttpResponse(HTMLTemplate(article, id))
+    elif request.method=='POST':
+        title = request.POST['title']
+        year=request.POST['year']
+        for movie in movies:
+            if movie['id'] == int(id):
+                movie['title'] = title
+                movie['year'] = year
+        return redirect(f'/read/{id}')
 
 @csrf_exempt
 def delete(request):
