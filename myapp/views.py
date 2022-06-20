@@ -10,8 +10,18 @@ movies = [
 ]
 nextId=4
 
-def HTMLTemplate(articleTag):
+def HTMLTemplate(articleTag, id=None):
     global movies
+    contextUI=''
+    if id !=None:
+        contextUI= f'''
+            <li>
+                <form action="/delete/" method="post">
+                    <input type="hidden" name="id" value={id}>
+                    <input  type="submit" value="delete">
+                </form>
+            </li>
+        '''
     ol=''
     for movie in movies:
         ol+=f'<li><a href="/read/{movie["id"]}">{movie["title"]}</a></li>'
@@ -25,6 +35,7 @@ def HTMLTemplate(articleTag):
         {articleTag}
         <ul>
             <li><a href="/create/">create</a></li>
+            {contextUI}
         </ul>
     </body>
     </html>
@@ -42,7 +53,7 @@ def read(request, id):
     for movie in movies:
         if movie['id'] == int(id):
             article = f'<h2>{movie["title"]}</h2>출시년도: {movie["year"]}'
-    return HttpResponse(HTMLTemplate(article))
+    return HttpResponse(HTMLTemplate(article, id))
 
 @csrf_exempt
 def create(request):
@@ -64,3 +75,15 @@ def create(request):
         url='/read/'+str(nextId) 
         nextId =nextId + 1
         return redirect(url)
+
+@csrf_exempt
+def delete(request):
+    global movies
+    if request.method=='POST':
+        id=request.POST['id']
+        newMovies=[]
+        for movie in movies:
+            if movie['id'] != int(id):
+                newMovies.append(movie)
+        movies=newMovies
+        return redirect('/')
